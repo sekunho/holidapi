@@ -16,6 +16,8 @@
           elixir
           erlang
           elixir_ls
+
+          inotify-tools
         ];
 
         LANG="en_US.UTF-8";
