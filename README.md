@@ -15,9 +15,9 @@ times as low as possible.
 
 ## Todo List
 
-- [] Parse inputs but no such implementation for behavior yet
+- [x] Parse inputs but no such implementation for behavior yet
 - [] Implement behavior (retrieving, generating ICS file, etc.)
-  - [] Retrieve holidays given a time range and a list of locales
+  - [x] Retrieve holidays given a time range and a list of locales
   - [] Generate ICS file
   - [] Add a custom holiday, maybe naive approach first (man this is difficult)
 - [] Benchmark naive implementation
