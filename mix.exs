@@ -46,7 +46,7 @@ defmodule HolidefsApi.MixProject do
       {:plug_cowboy, "~> 2.5"},
 
       {:typed_struct, "~> 0.3.0"},
-      {:holidefs, "~> 0.3"},
+      {:holidefs, git: "https://github.com/sekunho/holidefs.git", branch: "master"},
       {:ex_doc, "~> 0.27", only: :dev, runtime: false},
     ]
   end
