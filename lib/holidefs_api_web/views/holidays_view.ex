@@ -16,7 +16,7 @@ defmodule HolidefsApiWeb.HolidaysView do
 
       "calendar.ics" -> "foobarbaz"
 
-      "500.json" ->
+      "400.json" ->
         msg =
           case data.error do
             :invalid_holiday_type -> """

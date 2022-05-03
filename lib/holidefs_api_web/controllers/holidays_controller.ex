@@ -9,7 +9,10 @@ defmodule HolidefsApiWeb.HolidaysController do
 
       render(conn, "index.json", countries_holidays: countries_holidays)
     else
-      {:error, e} -> render(conn, "500.json", error: e)
+      {:error, e} ->
+        conn
+        |> put_status(:bad_request)
+        |> render("400.json", error: e)
     end
   end
 
