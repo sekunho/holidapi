@@ -18,6 +18,7 @@
           elixir_ls
 
           inotify-tools
+          sqitchPg
         ];
 
         LANG="en_US.UTF-8";

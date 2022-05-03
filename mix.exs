@@ -35,7 +35,6 @@ defmodule HolidefsApi.MixProject do
       # Phoenix dependencies
       {:phoenix, "~> 1.6.7"},
       {:phoenix_ecto, "~> 4.4"},
-      ## Tbh, I don't think I'll need `ecto` here but we'll see.
       {:ecto_sql, "~> 3.6"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_live_dashboard, "~> 0.6"},

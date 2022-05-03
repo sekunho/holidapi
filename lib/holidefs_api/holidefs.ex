@@ -9,14 +9,27 @@ defmodule HolidefsApi.Holidefs do
   """
   @spec between(RetrieveHolidays.t())
     :: {:ok, [Holidefs.Holiday.t()]} | {:error, atom()}
-  def between(request = %{type: {_, %{countries: countries}}}) do
-    fetch_holidays = fn
-      country_code, {:formal, details} ->
-        Holib.between(country_code, details.from, details.to)
+  def between(request = %{type: {_, %{countries: countries}}}, opts \\ []) do
+    fetch_holidays =
+      if Keyword.get(opts, :cache, false) do
+        # Retrieves the holidays with caching.
+        fn
+          country_code, {:formal, details} ->
+            Holib.between(country_code, details.from, details.to)
 
-      country_code, {:include_informal, details} ->
-        Holib.between(country_code, details.from, details.to, informal?: true)
-    end
+          country_code, {:include_informal, details} ->
+            Holib.between(country_code, details.from, details.to, informal?: true)
+        end
+      else
+        # No caching involved here
+        fn
+          country_code, {:formal, details} ->
+            Holib.between(country_code, details.from, details.to)
+
+          country_code, {:include_informal, details} ->
+            Holib.between(country_code, details.from, details.to, informal?: true)
+        end
+      end
 
     # NOTE: Ok, yeah I know it's expensive.
     Enum.reduce_while(countries, {:ok, %{}}, fn

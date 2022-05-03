@@ -2,8 +2,7 @@ import Config
 
 # Configure your database
 config :holidefs_api, HolidefsApi.Repo,
-  username: "postgres",
-  password: "postgres",
+  username: "sekun",
   hostname: "localhost",
   database: "holidefs_api_dev",
   stacktrace: true,
