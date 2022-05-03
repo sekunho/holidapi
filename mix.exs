@@ -1,6 +1,5 @@
 defmodule HolidefsApi.MixProject do
   use Mix.Project
-
   def project do
     [
       app: :holidefs_api,
@@ -33,8 +32,10 @@ defmodule HolidefsApi.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      # Phoenix dependencies
       {:phoenix, "~> 1.6.7"},
       {:phoenix_ecto, "~> 4.4"},
+      ## Tbh, I don't think I'll need `ecto` here but we'll see.
       {:ecto_sql, "~> 3.6"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_live_dashboard, "~> 0.6"},
@@ -42,7 +43,11 @@ defmodule HolidefsApi.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"}
+      {:plug_cowboy, "~> 2.5"},
+
+      {:typed_struct, "~> 0.3.0"},
+      {:holidefs, "~> 0.3"},
+      {:ex_doc, "~> 0.27", only: :dev, runtime: false},
     ]
   end
 

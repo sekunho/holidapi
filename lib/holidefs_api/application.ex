@@ -9,7 +9,7 @@ defmodule HolidefsApi.Application do
   def start(_type, _args) do
     children = [
       # Start the Ecto repository
-      HolidefsApi.Repo,
+      # HolidefsApi.Repo,
       # Start the Telemetry supervisor
       HolidefsApiWeb.Telemetry,
       # Start the PubSub system

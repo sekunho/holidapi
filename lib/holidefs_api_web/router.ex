@@ -7,6 +7,10 @@ defmodule HolidefsApiWeb.Router do
 
   scope "/api", HolidefsApiWeb do
     pipe_through :api
+
+    get "/holidays", HolidaysController, :index
+    get "/holidays/.ics", HolidaysController, :generate_ics
+    post "/holidays", HolidaysController, :create
   end
 
   # Enables LiveDashboard only for development
