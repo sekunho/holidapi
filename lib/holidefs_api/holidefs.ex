@@ -2,6 +2,11 @@ defmodule HolidefsApi.Holidefs do
   alias Holidefs, as: Holib
   alias HolidefsApi.Request.RetrieveHolidays
 
+  @doc """
+  Fetches the holidays given a retrieve request.
+
+  The naive implementation.
+  """
   @spec between(RetrieveHolidays.t())
     :: {:ok, [Holidefs.Holiday.t()]} | {:error, atom()}
   def between(request = %{type: {_, %{countries: countries}}}) do

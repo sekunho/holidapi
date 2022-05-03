@@ -48,6 +48,9 @@ defmodule HolidefsApi.MixProject do
       {:typed_struct, "~> 0.3.0"},
       {:holidefs, git: "https://github.com/sekunho/holidefs.git", branch: "master"},
       {:ex_doc, "~> 0.27", only: :dev, runtime: false},
+
+      {:benchee, "~> 1.0", only: :dev},
+      {:benchee_markdown, "~> 0.2", only: :dev}
     ]
   end
 
