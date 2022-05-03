@@ -26,7 +26,8 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
   end
 
   @doc """
-  Converts a map to a `RetrieveHolidays` request.
+  Converts a map to a `RetrieveHolidays` request. It also dedups the countries
+  list.
 
   ## Examples
 
@@ -107,8 +108,7 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
 
   `from_map/1` will panic in the ff scenarios:
 
-  1) the input is not a map; or
-  2) it is a map but has missing keys.
+  1) the input is not a map; or 2) it is a map but has missing keys.
   """
   @spec from_map(map()) :: {:ok, t()} | {:error, error()}
   def from_map(%{
@@ -120,6 +120,7 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
     cc =
       countries
       |> String.split(",", trim: true)
+      |> MapSet.new()
       |> Enum.map(&parse_country_code/1)
       |> cc_seq()
 
