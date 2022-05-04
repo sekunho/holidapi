@@ -2,12 +2,25 @@ defmodule HolidefsApiWeb.HolidaysController do
   use HolidefsApiWeb, :controller
 
   alias HolidefsApi.Request.RetrieveHolidays
-  import HolidefsApi.Holidefs, only: [between: 1]
+  import HolidefsApi.Holidefs, only: [between: 1, between_db: 1]
   import HolidefsApi.Holidefs.Export, only: [export: 1]
 
   def index(conn, params) do
     with {:ok, retrieve_request} <- RetrieveHolidays.from_map(params),
          {:ok, country_holidays} <- between(retrieve_request) do
+
+      render(conn, "index.json", country_holidays: country_holidays)
+    else
+      {:error, e} ->
+        conn
+        |> put_status(:bad_request)
+        |> render("400.json", error: e)
+    end
+  end
+
+  def index_alt(conn, params) do
+    with {:ok, retrieve_request} <- RetrieveHolidays.from_map(params),
+         {:ok, country_holidays} <- between_db(retrieve_request) do
 
       render(conn, "index.json", country_holidays: country_holidays)
     else

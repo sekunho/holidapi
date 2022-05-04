@@ -20,6 +20,13 @@ BEGIN;
      'to_weekday_if_weekend', 'g20_day_2014_only'
   );
 
+  CREATE TYPE app.FUN_OBSERVED AS ENUM (
+    'closest_monday', 'next_week', 'previous_friday',
+    'to_following_monday_if_not_monday', 'to_monday_if_sunday',
+    'to_monday_if_weekend', 'to_tuesday_if_sunday_or_monday_if_saturday',
+    'to_weekday_if_boxing_weekend', 'to_weekday_if_weekend'
+  );
+
   CREATE TYPE app.YEAR_SELECTOR AS ENUM ('limited', 'after', 'before');
 
   CREATE TABLE app.definitions(
@@ -38,9 +45,11 @@ BEGIN;
   CREATE TABLE app.rules(
     rule_id       BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
 
+    definition_id BIGINT REFERENCES app.definitions,
+
     informal      BOOLEAN NOT NULL DEFAULT false,
     name          TEXT NOT NULL,
-    fun_observed  app.FUN,
+    fun_observed  app.FUN_OBSERVED,
 
     -- TYPES OF HOLIDAYS
     ----------------------
@@ -80,97 +89,50 @@ BEGIN;
     after_year    SMALLINT,
 
     -- This holiday is only a thing before this year
-    before_year   SMALLINT,
+    before_year   SMALLINT
 
     -- Since a holiday can only be one of 3 holiday types, this check ensures
     -- that the other irrelevant fields aren't set.
-    CONSTRAINT valid_rule CHECK (
-      (
-        month IS NOT NULL AND
-        month_day IS NOT NULL AND
-        week IS NULL AND
-        week_day IS NULL AND
-        fun IS NULL AND
-        fun_modifier IS NULL
-      ) OR (
-        month IS NOT NULL AND
-        month_day IS NULL AND
-        week IS NOT NULL AND
-        week_day IS NOT NULL AND
-        fun IS NULL AND
-        fun_modifier IS NULL
-      ) OR (
-        month IS NULL AND
-        month_day IS NULL AND
-        week IS NULL AND
-        week_day IS NULL AND
-        fun IS NOT NULL AND
-        fun_modifier IS NOT NULL
-      )
-    )
+    -- CONSTRAINT valid_rule CHECK (
+    --   (
+    --     month IS NOT NULL AND
+    --     (month_day IS NOT NULL) AND
+    --     week IS NULL AND
+    --     week_day IS NULL AND
+    --     (
+    --       (fun IS NULL AND fun_modifier IS NULL) OR
+    --       (fun IS NOT NULL AND (fun_modifier IS NULL OR fun_modifier IS NOT NULL))
+    --     )
+    --   ) OR (
+    --     month IS NOT NULL AND
+    --     month_day IS NULL AND
+    --     week IS NOT NULL AND
+    --     week_day IS NOT NULL AND
+    --     fun IS NULL AND
+    --     fun_modifier IS NULL
+    --   ) OR (
+    --     month IS NULL AND
+    --     month_day IS NULL AND
+    --     week IS NULL AND
+    --     week_day IS NULL AND
+    --     fun IS NOT NULL AND
+    --     (fun_modifier IS NOT NULL OR fun_modifier IS NULL)
+    --   )
+    -- )
   );
 
-  -- DUPLICATION CHECKER
-  ------------------------
-
-  -- You can't have holidays with the same name, month, day of the month,
-  -- and selector type. Although this does not check for overlaps in year range.
-  CREATE UNIQUE INDEX month_holiday_index
-    ON app.rules(name, month, month_day)
-    WHERE month IS NOT NULL
-      AND month_day IS NOT NULL;
-
-  CREATE UNIQUE INDEX month_holiday_index_with_year_selector
-    ON app.rules(name, informal, fun_observed, month, month_day, selector_type)
-    WHERE month IS NOT NULL
-      AND month_day IS NOT NULL
-      AND selector_type IS NOT NULL;
-
-  -- You can't have holidays with the same name, month, week, week day, and
-  -- selector type. Although this does not check for overlaps in year range.
-  CREATE UNIQUE INDEX week_holiday_index
-    ON app.rules(name, month, week, week_day)
-    WHERE month IS NOT NULL
-      AND week IS NOT NULL
-      AND week_day IS NOT NULL;
-
-  CREATE UNIQUE INDEX week_holiday_index_with_year_selector
-    ON app.rules(name, informal, fun_observed, month, week, week_day, selector_type)
-    WHERE month IS NOT NULL
-      AND week IS NOT NULL
-      AND week_day IS NOT NULL
-      AND selector_type IS NOT NULL;
-
-  -- You can't have holidays with the same name, function, function modifier,
-  -- and selector type.
-  CREATE UNIQUE INDEX fun_holiday_index
-    ON app.rules(name, fun, fun_modifier)
-    WHERE fun IS NOT NULL
-      AND fun_modifier IS NOT NULL;
-
-  CREATE UNIQUE INDEX fun_holiday_index_with_year_selector
-    ON app.rules(name, informal, fun_observed, fun, fun_modifier, selector_type)
-    WHERE fun IS NOT NULL
-      AND fun_modifier IS NOT NULL
-      AND selector_type IS NOT NULL;
+  CREATE INDEX definition_id_index ON app.rules(definition_id);
+  /* CREATE INDEX rules_index ON app.rules( */
+  /*   definition_id */
+  /* ); */
 
 --------------------------------------------------------------------------------
-
-  CREATE TABLE app.definitions_rules(
-    id            BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-
-    definition_id BIGINT REFERENCES app.definitions,
-    rule_id       BIGINT REFERENCES app.rules
-  );
-
---------------------------------------------------------------------------------
--- INSERT RULE FUNCTIONS
 
   CREATE FUNCTION app.insert_rule(
     definition_id BIGINT,
     informal      BOOLEAN,
     rule_name     TEXT,
-    fun_observed  app.FUN,
+    fun_observed  app.FUN_OBSERVED,
 
     -- HOLIDAY TYPES
     ------------------
@@ -194,34 +156,71 @@ BEGIN;
     after_year    SMALLINT,
     before_year   SMALLINT
   )
-    RETURNS TABLE (id BIGINT, definition_id BIGINT, rule_id BIGINT)
+    RETURNS TABLE (rule_id BIGINT)
     LANGUAGE SQL
     AS $$
-      WITH rule_cte AS (
-        INSERT
-          INTO app.rules (
-            informal,
-            name,
-            fun_observed,
-            month,
-            month_day,
-            week,
-            week_day,
-            fun,
-            fun_modifier,
-            selector_type,
-            limited_years,
-            after_year,
-            before_year
-          )
-          VALUES ($2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-          ON CONFLICT DO NOTHING
-          RETURNING rule_id
-      )
       INSERT
-        INTO app.definitions_rules (definition_id, rule_id)
-        SELECT $1 AS definition_id, rule_id
-          FROM rule_cte
-          RETURNING id, definition_id, rule_id;
+        INTO app.rules (
+          definition_id,
+          informal,
+          name,
+          fun_observed,
+          month,
+          month_day,
+          week,
+          week_day,
+          fun,
+          fun_modifier,
+          selector_type,
+          limited_years,
+          after_year,
+          before_year
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        RETURNING rule_id;
+    $$;
+
+  CREATE FUNCTION app.get_definitions(locale TEXT)
+    RETURNS JSON
+    LANGUAGE SQL IMMUTABLE
+    AS $$
+      WITH definition_cte AS /* NOT MATERIALIZED */ (
+        SELECT definition_id, name, code
+          FROM app.definitions
+          WHERE code = locale
+      ), rules_cte AS /* NOT MATERIALIZED */ (
+        SELECT
+            rules.name,
+            rules.informal,
+            rules.fun AS function,
+            rules.fun_modifier AS function_modifier,
+            rules.month,
+            rules.month_day AS day,
+            rules.fun_observed AS observed,
+            array[definition_cte.code] AS regions,
+            rules.week,
+            rules.week_day AS weekday,
+            CASE
+              WHEN rules.selector_type = 'limited' THEN
+                json_build_array(json_build_object(rules.selector_type, rules.limited_years))
+
+              WHEN rules.selector_type = 'after' THEN
+                json_build_array(json_build_object(rules.selector_type, rules.after_year))
+
+              WHEN rules.selector_type = 'before' THEN
+                json_build_array(json_build_object(rules.selector_type, rules.before_year))
+
+              ELSE NULL
+            END AS year_ranges
+          FROM app.rules AS rules, definition_cte
+          WHERE rules.definition_id = definition_cte.definition_id
+      )
+      SELECT json_build_object(
+        'rules', json_agg(row_to_json(rules_cte)),
+        'name', definition_cte.name,
+        'code', definition_cte.code
+      )
+        FROM definition_cte, rules_cte
+        GROUP BY definition_cte.name, definition_cte.code;
     $$;
 COMMIT;

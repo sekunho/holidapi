@@ -64,39 +64,57 @@ Run Time
   </tr>
 
   <tr>
-    <td style="white-space: nowrap">naive_1</td>
-    <td style="white-space: nowrap; text-align: right">4.20 K</td>
-    <td style="white-space: nowrap; text-align: right">238.25 &micro;s</td>
-    <td style="white-space: nowrap; text-align: right">&plusmn;11.22%</td>
-    <td style="white-space: nowrap; text-align: right">231.79 &micro;s</td>
-    <td style="white-space: nowrap; text-align: right">333.46 &micro;s</td>
+    <td style="white-space: nowrap">db_1</td>
+    <td style="white-space: nowrap; text-align: right">8.81 K</td>
+    <td style="white-space: nowrap; text-align: right">113.48 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">&plusmn;11.19%</td>
+    <td style="white-space: nowrap; text-align: right">113.93 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">151.22 &micro;s</td>
   </tr>
 
   <tr>
-    <td style="white-space: nowrap">naive_2</td>
-    <td style="white-space: nowrap; text-align: right">2.77 K</td>
-    <td style="white-space: nowrap; text-align: right">361.49 &micro;s</td>
-    <td style="white-space: nowrap; text-align: right">&plusmn;9.26%</td>
-    <td style="white-space: nowrap; text-align: right">358.48 &micro;s</td>
-    <td style="white-space: nowrap; text-align: right">497.22 &micro;s</td>
+    <td style="white-space: nowrap">holidefs_default_1</td>
+    <td style="white-space: nowrap; text-align: right">8.44 K</td>
+    <td style="white-space: nowrap; text-align: right">118.53 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">&plusmn;11.71%</td>
+    <td style="white-space: nowrap; text-align: right">118.40 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">152.75 &micro;s</td>
   </tr>
 
   <tr>
-    <td style="white-space: nowrap">naive_5</td>
-    <td style="white-space: nowrap; text-align: right">1.20 K</td>
-    <td style="white-space: nowrap; text-align: right">830.08 &micro;s</td>
-    <td style="white-space: nowrap; text-align: right">&plusmn;6.73%</td>
-    <td style="white-space: nowrap; text-align: right">817.31 &micro;s</td>
-    <td style="white-space: nowrap; text-align: right">1070.76 &micro;s</td>
+    <td style="white-space: nowrap">db_12</td>
+    <td style="white-space: nowrap; text-align: right">4.09 K</td>
+    <td style="white-space: nowrap; text-align: right">244.55 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">&plusmn;10.42%</td>
+    <td style="white-space: nowrap; text-align: right">241.31 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">338.80 &micro;s</td>
   </tr>
 
   <tr>
-    <td style="white-space: nowrap">naive_10</td>
-    <td style="white-space: nowrap; text-align: right">0.62 K</td>
-    <td style="white-space: nowrap; text-align: right">1602.25 &micro;s</td>
-    <td style="white-space: nowrap; text-align: right">&plusmn;4.38%</td>
-    <td style="white-space: nowrap; text-align: right">1591.54 &micro;s</td>
-    <td style="white-space: nowrap; text-align: right">1829.25 &micro;s</td>
+    <td style="white-space: nowrap">holidefs_default_12</td>
+    <td style="white-space: nowrap; text-align: right">4.07 K</td>
+    <td style="white-space: nowrap; text-align: right">245.42 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">&plusmn;9.91%</td>
+    <td style="white-space: nowrap; text-align: right">243.49 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">334.61 &micro;s</td>
+  </tr>
+
+  <tr>
+    <td style="white-space: nowrap">db_24</td>
+    <td style="white-space: nowrap; text-align: right">2.61 K</td>
+    <td style="white-space: nowrap; text-align: right">382.90 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">&plusmn;10.58%</td>
+    <td style="white-space: nowrap; text-align: right">374.25 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">575.09 &micro;s</td>
+  </tr>
+
+  <tr>
+    <td style="white-space: nowrap">holidefs_default_24</td>
+    <td style="white-space: nowrap; text-align: right">2.61 K</td>
+    <td style="white-space: nowrap; text-align: right">383.04 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">&plusmn;10.21%</td>
+    <td style="white-space: nowrap; text-align: right">374.89 &micro;s</td>
+    <td style="white-space: nowrap; text-align: right">547.26 &micro;s</td>
   </tr>
 
 </table>
@@ -110,27 +128,39 @@ Comparison
     <th style="text-align: right">IPS</th>
     <th style="text-align: right">Slower</th>
   <tr>
-    <td style="white-space: nowrap">naive_1</td>
-    <td style="white-space: nowrap;text-align: right">4.20 K</td>
+    <td style="white-space: nowrap">db_1</td>
+    <td style="white-space: nowrap;text-align: right">8.81 K</td>
     <td>&nbsp;</td>
   </tr>
 
   <tr>
-    <td style="white-space: nowrap">naive_2</td>
-    <td style="white-space: nowrap; text-align: right">2.77 K</td>
-    <td style="white-space: nowrap; text-align: right">1.52x</td>
+    <td style="white-space: nowrap">holidefs_default_1</td>
+    <td style="white-space: nowrap; text-align: right">8.44 K</td>
+    <td style="white-space: nowrap; text-align: right">1.04x</td>
   </tr>
 
   <tr>
-    <td style="white-space: nowrap">naive_5</td>
-    <td style="white-space: nowrap; text-align: right">1.20 K</td>
-    <td style="white-space: nowrap; text-align: right">3.48x</td>
+    <td style="white-space: nowrap">db_12</td>
+    <td style="white-space: nowrap; text-align: right">4.09 K</td>
+    <td style="white-space: nowrap; text-align: right">2.16x</td>
   </tr>
 
   <tr>
-    <td style="white-space: nowrap">naive_10</td>
-    <td style="white-space: nowrap; text-align: right">0.62 K</td>
-    <td style="white-space: nowrap; text-align: right">6.73x</td>
+    <td style="white-space: nowrap">holidefs_default_12</td>
+    <td style="white-space: nowrap; text-align: right">4.07 K</td>
+    <td style="white-space: nowrap; text-align: right">2.16x</td>
+  </tr>
+
+  <tr>
+    <td style="white-space: nowrap">db_24</td>
+    <td style="white-space: nowrap; text-align: right">2.61 K</td>
+    <td style="white-space: nowrap; text-align: right">3.37x</td>
+  </tr>
+
+  <tr>
+    <td style="white-space: nowrap">holidefs_default_24</td>
+    <td style="white-space: nowrap; text-align: right">2.61 K</td>
+    <td style="white-space: nowrap; text-align: right">3.38x</td>
   </tr>
 
 </table>

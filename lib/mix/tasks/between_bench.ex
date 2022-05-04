@@ -5,32 +5,24 @@ defmodule Mix.Tasks.BetweenBench do
   alias HolidefsApi.Holidefs
 
   def run(_) do
-    {:ok, params_1_country } = %{
-      "countries" => "ph",
-      "holiday_type" =>
-      "include_informal",
+    {:ok, params_1} = %{
+      "country" => "ph",
+      "holiday_type" => "include_informal",
       "start" => "2022-01-01",
-      "end" => "2023-01-01"
+      "end" => "2022-02-01"
     } |> RetrieveHolidays.from_map()
 
-    {:ok, params_2_country} = %{
-      "countries" => "ph,au",
+    {:ok, params_12} = %{
+      "country" => "ph",
       "holiday_type" => "include_informal",
       "start" => "2022-01-01",
       "end" => "2023-01-01"
     } |> RetrieveHolidays.from_map()
 
-    {:ok, params_5_country} = %{
-      "countries" => "ph,au,us,ca,hu",
+    {:ok, params_24} = %{
+      "country" => "ph",
       "holiday_type" => "include_informal",
-      "start" => "2022-01-01",
-      "end" => "2023-01-01"
-    } |> RetrieveHolidays.from_map()
-
-    {:ok, params_10_country} = %{
-      "countries" => "br,us,hr,at,au,be,ca,ch,co,cz",
-      "holiday_type" => "include_informal",
-      "start" => "2022-01-01",
+      "start" => "2021-01-01",
       "end" => "2023-01-01"
     } |> RetrieveHolidays.from_map()
 
@@ -40,10 +32,12 @@ defmodule Mix.Tasks.BetweenBench do
 
     Benchee.run(
       %{
-        "naive_1" => fn -> fun.(params_1_country) end,
-        "naive_2" => fn -> fun.(params_2_country) end,
-        "naive_5" => fn -> fun.(params_5_country) end,
-        "naive_10" => fn -> fun.(params_10_country) end,
+        "holidefs_default_1" => fn -> fun.(params_1) end,
+        "db_1" => fn -> fun.(params_1) end,
+        "holidefs_default_12" => fn -> fun.(params_12) end,
+        "db_12" => fn -> fun.(params_12) end,
+        "holidefs_default_24" => fn -> fun.(params_24) end,
+        "db_24" => fn -> fun.(params_24) end,
       },
       formatters: [
         Benchee.Formatters.Console,
