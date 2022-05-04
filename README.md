@@ -2,11 +2,11 @@
 
 ## Overall Thing
 
-- [] One should be able to retrieve all the holidays of a given time range and
+- [ ] One should be able to retrieve all the holidays of a given time range and
   country.
-- [] One should be able to configure Google Calendar to retrieve the holidays
+- [ ] One should be able to configure Google Calendar to retrieve the holidays
   from this service (by serving an iCal file).
-- [] Plus: One should be able to add custom holidays to the service.
+- [ ] Plus: One should be able to add custom holidays to the service.
 
 Consider that the main endpoint of this service would be consumed by Toggl Plan
 and the holidays would be fetched every time a new part of the timeline is
@@ -16,12 +16,12 @@ times as low as possible.
 ## Todo List
 
 - [x] Parse inputs but no such implementation for behavior yet
-- [] Implement behavior (retrieving, generating ICS file, etc.)
+- [ ] Implement behavior (retrieving, generating ICS file, etc.)
   - [x] Retrieve holidays given a time range and a list of locales
-  - [] Generate ICS file
-  - [] Add a custom holiday, maybe naive approach first (man this is difficult)
-- [] Benchmark naive implementation
-- [] Implement better version. Like cache results to get lower response times
+  - [x] Generate ICS file
+  - [ ] Add a custom holiday, maybe naive approach first (man this is difficult)
+- [ ] Benchmark naive implementation
+- [ ] Implement better version. Like cache results to get lower response times
 
 ## Get started
 
