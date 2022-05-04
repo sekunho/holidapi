@@ -2,9 +2,6 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
   @moduledoc """
   A parsed request to retrieve a list of holidays.
 
-  e.g `%RetrieveHolidays{country_code: :ph, from: _, to: _}` for the country
-  code `ph`.
-
   It is assumed that the `Date` entries in this struct are set to the local
   date of the country being requested.
   """
@@ -31,6 +28,29 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
 
   ## Examples
 
+  Defaults to `"formal"` if the key `holiday_type` does not exist.
+
+      iex> from_map(%{
+      ...>  "country" => "ph",
+      ...>  "start" => "2022-01-01",
+      ...>  "end" => "2022-04-03",
+      ...> })
+      {
+        :ok,
+        %RetrieveHolidays{
+          type: {
+            :formal,
+            %RetrieveHolidays.Type{
+              country: :ph,
+              from: ~D[2022-01-01],
+              to: ~D[2022-04-03]
+            }
+          }
+        }
+      }
+
+  You can also explicitly provide it, if you want.
+
       iex> from_map(%{
       ...>  "country" => "ph",
       ...>  "start" => "2022-01-01",
@@ -50,6 +70,8 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
           }
         }
       }
+
+  You can include informal holidays in the retrieval as well.
 
       iex> from_map(%{
       ...>   "country" => "ph",
@@ -109,16 +131,18 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
 
   `from_map/1` will panic in the ff scenarios:
 
-    1) the input is not a map; or
-    2) it is a map but has missing keys.
+    1) The input is not a map; or
+    2) It is a map but has missing keys. Of course, with the exception of
+    `"holiday_type"`.
   """
   @spec from_map(map()) :: {:ok, t()} | {:error, error()}
-  def from_map(%{
+  def from_map(req = %{
     "country" => country,
     "start" => from,
     "end" => to,
-    "holiday_type" => holiday_type
   }) do
+    holiday_type = Map.get(req, "holiday_type", "formal")
+
     with {:ok, from} <- Date.from_iso8601(from),
          {:ok, to} <- Date.from_iso8601(to),
          {:ok, country} <- parse_country_code(country),
