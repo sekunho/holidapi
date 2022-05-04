@@ -26,13 +26,13 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
   end
 
   @doc """
-  Converts a map to a `RetrieveHolidays` request. It also dedups the countries
+  Converts a map to a `RetrieveHolidays` request.
   list.
 
   ## Examples
 
       iex> from_map(%{
-      ...>  "countries" => "ph,au,us",
+      ...>  "country" => "ph",
       ...>  "start" => "2022-01-01",
       ...>  "end" => "2022-04-03",
       ...>  "holiday_type" => "formal"
@@ -43,7 +43,7 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
           type: {
             :formal,
             %RetrieveHolidays.Type{
-              countries: [:us, :au, :ph],
+              country: :ph,
               from: ~D[2022-01-01],
               to: ~D[2022-04-03]
             }
@@ -52,7 +52,7 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
       }
 
       iex> from_map(%{
-      ...>   "countries" => "ph,au,us",
+      ...>   "country" => "ph",
       ...>   "start" => "2022-01-01",
       ...>   "end" => "2022-04-03",
       ...>   "holiday_type" => "include_informal"
@@ -63,7 +63,7 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
           type: {
             :include_informal,
             %RetrieveHolidays.Type{
-              countries: [:us, :au, :ph],
+              country: :ph,
               from: ~D[2022-01-01],
               to: ~D[2022-04-03]
             }
@@ -76,7 +76,7 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
   Fails if one of the country codes are invalid
 
       iex> from_map(%{
-      ...>   "countries" => "wtf,ph,au",
+      ...>   "country" => "wtf",
       ...>   "start" => "2022-01-01",
       ...>   "end" => "2022-04-03",
       ...>   "holiday_type" => "include_informal"
@@ -87,17 +87,18 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
   If the holiday type is neither "formal" or "include_informal"
 
       iex> from_map(%{
-      ...>   "countries" => "ph,au,us",
+      ...>   "country" => "ph",
       ...>   "start" => "2022-01-01",
       ...>   "end" => "2022-04-03",
       ...>   "holiday_type" => "what_is_this"
       ...> })
       {:error, :invalid_holiday_type}
 
+
   If it's an invalid date
 
       iex> from_map(%{
-      ...>   "countries" => "ph,au,us",
+      ...>   "country" => "ph",
       ...>   "start" => "2022-01--01",
       ...>   "end" => "2022-04-03",
       ...>   "holiday_type" => "formal"
@@ -108,26 +109,20 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
 
   `from_map/1` will panic in the ff scenarios:
 
-  1) the input is not a map; or 2) it is a map but has missing keys.
+    1) the input is not a map; or
+    2) it is a map but has missing keys.
   """
   @spec from_map(map()) :: {:ok, t()} | {:error, error()}
   def from_map(%{
-    "countries" => countries,
+    "country" => country,
     "start" => from,
     "end" => to,
     "holiday_type" => holiday_type
   }) do
-    cc =
-      countries
-      |> String.split(",", trim: true)
-      |> MapSet.new()
-      |> Enum.map(&parse_country_code/1)
-      |> cc_seq()
-
     with {:ok, from} <- Date.from_iso8601(from),
          {:ok, to} <- Date.from_iso8601(to),
-         {:ok, countries} <- cc,
-         {:ok, type} <- Type.from(countries, from, to, holiday_type) do
+         {:ok, country} <- parse_country_code(country),
+         {:ok, type} <- Type.from(country, from, to, holiday_type) do
       {:ok, %__MODULE__{type: type}}
     else
       {:error, :invalid_format} -> {:error, :invalid_date}
@@ -138,23 +133,6 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
 
       _ -> {:error, :invalid_params}
     end
-  end
-
-  @doc """
-  `seq/1` transforms a list of country code `Results` (or a tuple representation
-  of it), to a Result with a list if it goes well, otherwise an error. This is
-  useful for having a sequence of operations depend on everything succeeding.
-
-  I'm only using it for this case, hence why I didn't put it in its own module.
-  """
-  @spec cc_seq([{:ok, any} | {:err, atom}]) :: {:ok, [any]} | {:error, atom}
-  defp cc_seq(list) do
-    Enum.reduce_while(list, {:ok, []}, fn
-      {:ok, el}, {:ok, acc} ->
-        {:cont, {:ok, [el | acc]}}
-
-      {:error, e}, _ -> {:halt, {:error, e}}
-    end)
   end
 
   @spec parse_country_code(String.t())
@@ -198,8 +176,5 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
       "za" -> {:ok, :za}
       _ -> {:error, :invalid_country_code}
     end
-  end
-
-  def export() do
   end
 end

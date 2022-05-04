@@ -9,28 +9,15 @@ defmodule HolidefsApi.Holidefs do
   """
   @spec between(RetrieveHolidays.t())
     :: {:ok, [Holidefs.Holiday.t()]} | {:error, atom()}
-  def between(request = %{type: {_, %{countries: countries}}}) do
+  def between(request) do
     fetch_holidays = fn
-      country_code, {:formal, details} ->
-        Holib.between(country_code, details.from, details.to)
+      %{type: {:formal, %{country: country_code, from: from, to: to}}} ->
+        Holib.between(country_code, from, to)
 
-      country_code, {:include_informal, details} ->
-        Holib.between(country_code, details.from, details.to, informal?: true)
+      %{type: {:include_informal, %{country: country_code, from: from, to: to}}} ->
+        Holib.between(country_code, from, to, informal?: true)
     end
 
-    # NOTE: Ok, yeah I know it's expensive.
-    Enum.reduce_while(countries, {:ok, %{}}, fn
-      country_code, {:ok, acc_country_holidays} ->
-        case fetch_holidays.(country_code, request.type) do
-          {:ok, holidays} ->
-            country_holidays = Map.put(acc_country_holidays, country_code, holidays)
-            {:cont, {:ok, country_holidays}}
-
-          {:error, reason} -> {:halt, {:error, reason}}
-        end
-
-      # I don't think it's ever gonna reach here though.
-      _, {:error, reason} -> {:halt, {:error, reason}}
-    end)
+    fetch_holidays.(request)
   end
 end

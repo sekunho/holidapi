@@ -5,9 +5,9 @@ defmodule HolidefsApiWeb.HolidaysController do
 
   def index(conn, params) do
     with {:ok, retrieve_request} <- RetrieveHolidays.from_map(params),
-         {:ok, countries_holidays} <- HolidefsApi.Holidefs.between(retrieve_request) do
+         {:ok, country_holidays} <- HolidefsApi.Holidefs.between(retrieve_request) do
 
-      render(conn, "index.json", countries_holidays: countries_holidays)
+      render(conn, "index.json", country_holidays: country_holidays)
     else
       {:error, e} ->
         conn

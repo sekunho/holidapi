@@ -20,7 +20,7 @@ defmodule HolidefsApi.Request.RetrieveHolidays.Type do
 
   typedstruct do
     @typedoc "Used for encoding details of the `RetrieveHolidays` request."
-    field :countries, [Holidefs.locale_code()], enforce: true
+    field :country, Holidefs.locale_code(), enforce: true
     field :from, Date.t(), enforce: true
     field :to, Date.t(), enforce: true
   end
@@ -30,24 +30,25 @@ defmodule HolidefsApi.Request.RetrieveHolidays.Type do
 
   ## Examples
 
-      iex> from([:ph], ~D[2022-01-01], ~D[2022-04-03], "formal")
-      {:ok, {:formal, %Type{countries: [:ph], from: ~D[2022-01-01], to: ~D[2022-04-03]}}}
+      iex> from(:ph, ~D[2022-01-01], ~D[2022-04-03], "formal")
+      {:ok, {:formal, %Type{country: :ph, from: ~D[2022-01-01], to: ~D[2022-04-03]}}}
 
-      iex> from([:ph], ~D[2022-01-01], ~D[2022-04-03], "include_informal")
-      {:ok, {:include_informal, %Type{countries: [:ph], from: ~D[2022-01-01], to: ~D[2022-04-03]}}}
+      iex> from(:ph, ~D[2022-01-01], ~D[2022-04-03], "include_informal")
+      {:ok, {:include_informal, %Type{country: :ph, from: ~D[2022-01-01], to: ~D[2022-04-03]}}}
 
   ## Panics
 
   `from/4` will panic in the ff scenarios:
+    If it doesn't match the typespec.
   """
   @spec from(
-    [Holidefs.locale_code()],
+    Holidefs.locale_code(),
     Date.t(), Date.t(),
     String.t()
   ) :: {:ok, {:formal | :include_informal, t()}}
-  def from(countries, from_date, to_date, holiday_type) do
+  def from(country, from_date, to_date, holiday_type) do
     type = %__MODULE__{
-      countries: countries,
+      country: country,
       from: from_date,
       to: to_date
     }

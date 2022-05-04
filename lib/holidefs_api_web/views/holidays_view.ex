@@ -3,17 +3,9 @@ defmodule HolidefsApiWeb.HolidaysView do
 
   def render(file, data) do
     case file do
-      "index.json" -> data.countries_holidays
+      "index.json" -> %{data: render_many(data.country_holidays, __MODULE__, "holiday.json")}
 
-      "holiday.json" -> %{
-         date: ~D[2022-01-01],
-         informal?: false,
-         name: "New Year’s Day",
-         observed_date: ~D[2022-01-01],
-         raw_date: ~D[2022-01-01],
-         uid: "ph-2022-bee958081e35f0823bfab5ce252916a1"
-      }
-
+      "holiday.json" -> data.holidays
       "calendar.ics" -> "foobarbaz"
 
       "400.json" ->
