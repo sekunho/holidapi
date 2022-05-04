@@ -9,7 +9,7 @@ defmodule HolidefsApiWeb.Router do
     pipe_through :api
 
     get "/holidays/:country", HolidaysController, :index
-    get "/holidays/:country/.ics", HolidaysController, :generate_ics
+    get "/holidays/:country/cal.ics", HolidaysController, :generate_ics
     post "/holidays/:country", HolidaysController, :create
   end
 

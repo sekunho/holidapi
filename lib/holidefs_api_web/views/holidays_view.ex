@@ -3,10 +3,11 @@ defmodule HolidefsApiWeb.HolidaysView do
 
   def render(file, data) do
     case file do
-      "index.json" -> %{data: render_many(data.country_holidays, __MODULE__, "holiday.json")}
+      "index.json" ->
+        %{data: render_many(data.country_holidays, __MODULE__, "holiday.json")}
 
       "holiday.json" -> data.holidays
-      "calendar.ics" -> "foobarbaz"
+      "calendar.ics" -> data.ics_data
 
       "400.json" ->
         msg =
@@ -23,7 +24,7 @@ defmodule HolidefsApiWeb.HolidaysView do
             :invalid_params -> "E002: Something terribly wrong happened while parsing."
             :invalid_date -> "E003: This is not a valid date string. e.g  \"2022-01-01\" "
             :invalid_country_code -> """
-              E004: At least one of the country codes provided is unexpected.
+              E004: Unexpected country code
               """
           end
 

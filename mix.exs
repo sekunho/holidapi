@@ -45,9 +45,17 @@ defmodule HolidefsApi.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
 
+      # Less boilerplate when creating structs
       {:typed_struct, "~> 0.3.0"},
+
+      # The thing to provide an API for
       {:holidefs, git: "https://github.com/sekunho/holidefs.git", branch: "master"},
+
+      # Generate documentation
       {:ex_doc, "~> 0.27", only: :dev, runtime: false},
+
+      # Generate *.ics file.
+      {:icalendar, "~> 1.1"},
 
       {:benchee, "~> 1.0", only: :dev},
       {:benchee_markdown, "~> 0.2", only: :dev}
