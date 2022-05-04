@@ -10,7 +10,7 @@ defmodule HolidefsApiWeb.Router do
 
     get "/holidays/:country", HolidaysController, :index
     get "/holidays/:country/cal.ics", HolidaysController, :generate_ics
-    post "/holidays/:country", HolidaysController, :create
+    put "/holidays/:country", HolidaysController, :create
   end
 
   # Enables LiveDashboard only for development

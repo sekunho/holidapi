@@ -1,4 +1,9 @@
 defmodule HolidefsApi.Holidefs do
+  @moduledoc """
+  Wrapper around the `holidefs` library. This wrapper adds some conveniences
+  like caching, and an alternative way to load a locale definition.
+  """
+
   alias Holidefs, as: Holib
   alias HolidefsApi.Request.RetrieveHolidays
 
