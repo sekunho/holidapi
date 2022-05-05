@@ -16,12 +16,25 @@ times as low as possible.
 ## Todo List
 
 - [x] Parse inputs but no such implementation for behavior yet
-- [ ] Implement behavior (retrieving, generating ICS file, etc.)
-  - [x] Retrieve holidays given a time range and a list of locales
-  - [x] Generate ICS file
-  - [ ] Add a custom holiday, maybe naive approach first (man this is difficult)
-- [ ] Benchmark naive implementation
-- [ ] Implement better version. Like cache results to get lower response times
+- [x] Implement behavior (retrieving, generating ICS file, etc.)
+    - [x] Retrieve holidays given a time range and a list of locales
+    - [x] Generate ICS file
+    - [x] Add a custom holiday, maybe naive approach first (man this is difficult)
+- [x] Benchmark naive implementation
+- [ ] Caching
+  - [ ] When holidays are retrieved given a date range
+      - Have to check if this requested range overlaps with any existing range that
+      were cached.
+    - Otherwise, just insert to the cache table.
+  - [ ] When a new holiday rule is inserted
+      - Check if rule applies to any of the cached date ranges. The function that
+      handles this will be triggered after every insert/statement This can be done by:
+          1. Converting the request into a rule (belonging to a definition)
+          2. Running `year/2`, or something similar
+          3. Checking if the rule applies to any of the days cached in the DB.
+              - If it does, then insert the new holiday (not rule) to the cache table.
+              - If it doesn't, then ignore.
+- [ ] Benchmark cached implementation
 
 ## Get started
 
