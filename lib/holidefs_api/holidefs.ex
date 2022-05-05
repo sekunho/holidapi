@@ -25,7 +25,10 @@ defmodule HolidefsApi.Holidefs do
           from,
           to,
           &Holib.Definition.Store.get_definition/1,
-          include_informal?: true
+
+          # FIXME: Use the query param to set this
+          include_informal?: true,
+          observed?: true
         )
     end
 
@@ -45,11 +48,13 @@ defmodule HolidefsApi.Holidefs do
           from,
           to,
           &__MODULE__.Db.get_definition!/1,
-          include_informal?: true
+
+           # FIXME: Use the query param to set this
+          include_informal?: true,
+          observed?: true
         )
     end
 
     fetch_holidays.(request)
   end
-
 end
