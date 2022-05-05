@@ -2,25 +2,15 @@ defmodule HolidefsApiWeb.HolidaysController do
   use HolidefsApiWeb, :controller
 
   alias HolidefsApi.Request.RetrieveHolidays
-  import HolidefsApi.Holidefs, only: [between: 1, between_db: 1]
+  alias HolidefsApi.Request.AddCustomHoliday
+  import HolidefsApi.Holidefs, only: [between_db: 1]
   import HolidefsApi.Holidefs.Export, only: [export: 1]
 
   def index(conn, params) do
     with {:ok, retrieve_request} <- RetrieveHolidays.from_map(params),
-         {:ok, country_holidays} <- between(retrieve_request) do
-
-      render(conn, "index.json", country_holidays: country_holidays)
-    else
-      {:error, e} ->
-        conn
-        |> put_status(:bad_request)
-        |> render("400.json", error: e)
-    end
-  end
-
-  def index_alt(conn, params) do
-    with {:ok, retrieve_request} <- RetrieveHolidays.from_map(params),
          {:ok, country_holidays} <- between_db(retrieve_request) do
+
+       IO.inspect(retrieve_request)
 
       render(conn, "index.json", country_holidays: country_holidays)
     else
@@ -34,7 +24,24 @@ defmodule HolidefsApiWeb.HolidaysController do
   def create(conn, params) do
     IO.inspect(params)
 
-    render(conn, "holiday.json", holiday: %{})
+    with {:ok, add_holiday_request} <- AddCustomHoliday.from_map(params),
+         {:ok, _} <- HolidefsApi.Holidefs.Db.save_rule(add_holiday_request) do
+      # IO.inspect(add_holiday_request)
+    else
+      {:error, e} ->
+        conn
+        |> put_status(:bad_request)
+        |> render("400.json", error: e)
+
+      {:internal_server_error, e} ->
+        IO.inspect(e)
+        conn
+        |> put_status(:internal_server_error)
+        |> render("500.json", error: e)
+    end
+
+    # NOTE: This is only one holiday. Just that Phoenix does magic in the naming.
+    render(conn, "holiday.json", holidays: %{})
   end
 
   def generate_ics(conn, params) do
