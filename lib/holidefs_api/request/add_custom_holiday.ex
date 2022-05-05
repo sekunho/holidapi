@@ -2,9 +2,16 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
   @moduledoc """
   For when the user wants to add a custom holiday.
 
-  It isn't that important to make a distinction between an informal and formal
-  holiday, at least enough to use tagged tuples. That information can just exist
-  in the struct's field instead.
+  The way this is used in the server is as follows:
+
+      POST /api/holidays/:country_code
+        -> HolidayController.create
+        -> AddCustomHoliday.from_map
+        -> Db.save_rule
+
+  This module has the things necessary to parse the request parameters into
+  something more structured, which can then be used for things further in the
+  application. In this case, persisting the rule in the DB.
   """
 
   use TypedStruct
@@ -227,13 +234,7 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
     * `{:error, :invalid_function_modifier}` - If the modifier is not an integer.
     * `{:error, :invalid_function_and_modifier}` - If both are wrong.
   """
-  @spec from_map(%{
-    name: String.t(),
-    month: month(),
-    day: day(),
-    regions: [Holidefs.locale_code()],
-    year_selector: %{String.t() => String.t()} | nil
-  }) :: {:ok, t} | {:error, error()}
+  @spec from_map(map) :: {:ok, t} | {:error, error()}
   def from_map(holidata = %{
     "name" => name,
     "country" => country
