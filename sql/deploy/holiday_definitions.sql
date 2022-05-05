@@ -128,6 +128,54 @@ BEGIN;
 
 --------------------------------------------------------------------------------
 
+  CREATE FUNCTION app.find_def_and_insert_rule(
+    country       TEXT,
+    informal      BOOLEAN,
+    rule_name     TEXT,
+    fun_observed  app.FUN_OBSERVED,
+
+    -- HOLIDAY TYPES
+    ------------------
+
+    -- Month day holiday
+    month         SMALLINT,
+    month_day     SMALLINT,
+
+    -- Week day holiday
+    week          SMALLINT,
+    week_day      SMALLINT,
+
+    -- Custom function holiday
+    fun           app.FUN,
+    fun_modifier  INT,
+
+    -- YEAR SELECTORS
+    -------------------
+    selector_type app.YEAR_SELECTOR,
+    limited_years SMALLINT[],
+    after_year    SMALLINT,
+    before_year   SMALLINT
+
+  )
+  RETURNS VOID
+  LANGUAGE PLPGSQL
+  AS $$
+    DECLARE
+      def_id BIGINT;
+    BEGIN
+      SELECT definition_id INTO def_id
+        FROM app.definitions
+        WHERE code = $1;
+
+      IF def_id IS NULL THEN
+        raise EXCEPTION 'E001: Could not find definition %: %', $1, now();
+      END IF;
+
+      PERFORM rule_id
+        FROM app.insert_rule(def_id, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14);
+    END
+  $$;
+
   CREATE FUNCTION app.insert_rule(
     definition_id BIGINT,
     informal      BOOLEAN,
