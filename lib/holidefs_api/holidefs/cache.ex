@@ -5,6 +5,26 @@ defmodule HolidefsApi.Holidefs.Cache do
   alias Ecto.Multi
 
   @doc """
+  Fetches the uncached range(s).
+  """
+  @spec fetch_uncached_ranges(Date.t(), Date.t(), Holidefs.locale_code())
+    :: {:ok, any} | {:error, any}
+  def fetch_uncached_ranges(from, to, country_code) do
+    country_code = Atom.to_string(country_code)
+    query_str = "SELECT * FROM cache.check_dates($1, $2, $3)"
+
+    case Repo.query(query_str, [from, to, country_code]) do
+      {:ok, %{rows: []}} ->
+        {:ok, :all_cached}
+
+      {:ok, %{rows: rows}} ->
+        {:ok, Enum.map(rows, fn [from, to] -> %{from: from, to: to} end)}
+
+      {:error, _} -> {:error, :db_error}
+    end
+  end
+
+  @doc """
   Caches a list of holidays in the DB to avoid recomputation.
 
   This is meant to be used for caching holidays that were retrieved,
