@@ -1,26 +1,65 @@
 defmodule HolidefsApi.Holidefs.Cache do
   @moduledoc """
   """
-  alias HolidefsApi.Repo
   alias Ecto.Multi
+  alias HolidefsApi.Repo
+
+  def between(repo, from, to, country_code, opts \\ []) do
+    country_code = Atom.to_string(country_code)
+    include_informal? = Keyword.get(opts, :include_informal?, false)
+    observed? = Keyword.get(opts, :observed?, false)
+
+    query_str = """
+      SELECT * FROM cache.get_holidays($1 :: DATE, $2 :: DATE, $3 :: TEXT, $4, $5)
+    """
+
+    result =
+      repo.query(query_str, [from, to, country_code, include_informal?, observed?])
+
+    case result do
+      {:ok, %{rows: rows}} ->
+        holidays =
+          Enum.map(rows, fn [name, informal, date, observed_date, raw_date] ->
+            %Holidefs.Holiday{
+              name: name,
+              informal?: informal,
+              date: date,
+              observed_date: observed_date,
+              raw_date: raw_date,
+              uid: generate_uid(country_code, from.year, name)
+            }
+          end)
+        {:ok, holidays}
+
+      e = {:error, _} -> e
+    end
+  end
+
+  defp generate_uid(code, year, name) do
+    <<sha1::128, _::32>> = :crypto.hash(:sha, name)
+
+    hash =
+      <<sha1::128>>
+      |> Base.encode16()
+      |> String.downcase()
+
+    "#{code}-#{year}-#{hash}"
+  end
 
   @doc """
-  Fetches the uncached range(s).
+  Fetches the uncached and cached range(s).
   """
-  @spec fetch_uncached_ranges(Date.t(), Date.t(), Holidefs.locale_code())
+  @spec fetch_ranges_from_cache(any, Date.t(), Date.t(), Holidefs.locale_code())
     :: {:ok, any} | {:error, any}
-  def fetch_uncached_ranges(from, to, country_code) do
+  def fetch_ranges_from_cache(repo, from, to, country_code) do
     country_code = Atom.to_string(country_code)
     query_str = "SELECT * FROM cache.check_dates($1, $2, $3)"
 
-    case Repo.query(query_str, [from, to, country_code]) do
-      {:ok, %{rows: []}} ->
-        {:ok, :all_cached}
+    case repo.query(query_str, [from, to, country_code]) do
+      {:ok, %{rows: [[ranges_data]]}} ->
+        {:ok, ranges_data}
 
-      {:ok, %{rows: rows}} ->
-        {:ok, Enum.map(rows, fn [from, to] -> %{from: from, to: to} end)}
-
-      {:error, _} -> {:error, :db_error}
+      e = {:error, _} -> e
     end
   end
 

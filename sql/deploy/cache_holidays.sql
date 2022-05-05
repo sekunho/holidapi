@@ -147,10 +147,46 @@ BEGIN;
       )
       SELECT json_build_object(
         'cached',
-        cached_json.json_agg,
+        coalesce(cached_json.json_agg, '[]'::JSON),
         'uncached',
-        uncached_json.json_agg
+        coalesce(uncached_json.json_agg, '[]'::JSON)
       )
         FROM cached_json, uncached_json;
+    $$;
+
+  CREATE FUNCTION cache.get_holidays(
+    start_date DATE,
+    end_date DATE,
+    country_code TEXT,
+    with_observed BOOLEAN,
+    with_informal BOOLEAN
+  )
+    RETURNS TABLE (
+      name          TEXT,
+      informal      BOOLEAN,
+      date          DATE,
+      observed_date DATE,
+      raw_date      DATE
+    )
+    LANGUAGE SQL
+    AS $$
+      WITH date_range AS (
+        SELECT date_range_id
+          FROM cache.date_ranges
+          WHERE $1 >= date_ranges.start_date
+            AND $2 <= date_ranges.end_date
+            AND date_ranges.code = country_code
+      ), left_bound AS (
+        SELECT holidays.*
+          FROM cache.holidays, date_range
+          WHERE holidays.date_range_id = date_range.date_range_id
+            AND $1 <= holidays.date
+      ), right_bound AS (
+        SELECT left_bound.*
+          FROM left_bound, date_range
+          WHERE left_bound.date_range_id = date_range.date_range_id
+            AND $2 >= left_bound.date
+      )
+      SELECT name, informal, date, observed_date, raw_date FROM right_bound;
     $$;
 COMMIT;

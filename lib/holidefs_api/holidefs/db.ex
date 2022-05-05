@@ -2,7 +2,6 @@ defmodule HolidefsApi.Holidefs.Db do
   import Ecto.Adapters.SQL #, only: [query: 3, query!:]
   alias HolidefsApi.Request.AddCustomHoliday
 
-
   @spec get_definition!(Holidefs.locale_code()) :: Holidefs.Definition.t()
   def get_definition!(locale) do
     {:ok, %{rows: [[definition]]}} =
@@ -23,7 +22,7 @@ defmodule HolidefsApi.Holidefs.Db do
   defp to_rule(rule_map) do
     fname =
       if rule_map["function"] do
-        String.to_existing_atom(rule_map["function"])
+        String.to_atom(rule_map["function"])
       else
         nil
       end
@@ -69,12 +68,9 @@ defmodule HolidefsApi.Holidefs.Db do
         """,
         [Atom.to_string(definition.code), definition.name]
       )
-      |> IO.inspect(charlists: :as_charlists)
 
       # Insert all the rules under the definition
       for rule <- definition.rules do
-        IO.inspect(rule)
-
         {selector_type, limited_val, after_val, before_val} =
           if rule.year_ranges do
             [selector] = rule.year_ranges

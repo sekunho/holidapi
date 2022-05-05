@@ -12,8 +12,6 @@ defmodule HolidefsApiWeb.HolidaysController do
     with {:ok, retrieve_request} <- RetrieveHolidays.from_map(params),
          {:ok, country_holidays} <- between_db(retrieve_request) do
 
-       IO.inspect(retrieve_request)
-
       render(conn, "index.json", country_holidays: country_holidays)
     else
       {:error, e} ->
@@ -35,7 +33,6 @@ defmodule HolidefsApiWeb.HolidaysController do
         |> render("400.json", error: e)
 
       {:internal_server_error, e} ->
-        IO.inspect(e)
         conn
         |> put_status(:internal_server_error)
         |> render("500.json", error: e)
