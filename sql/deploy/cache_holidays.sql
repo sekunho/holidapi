@@ -90,7 +90,8 @@ BEGIN;
     end_date     DATE,
     country_code TEXT
   )
-    RETURNS TABLE (start_date DATE, end_date DATE)
+    /* RETURNS TABLE (start_date DATE, end_date DATE) */
+    RETURNS JSON
     LANGUAGE SQL IMMUTABLE
     AS $$
       WITH requested_dates AS (
@@ -100,26 +101,56 @@ BEGIN;
             end_date,
             interval '1 day'
           ) AS day
-      ), cached_dates AS (
+      ), all_cached_dates AS (
         SELECT generate_series(start_date, end_date, interval '1 day') AS day
           FROM cache.date_ranges
           WHERE code = country_code
       ), uncached_dates AS (
         SELECT requested_dates.day :: DATE
           FROM requested_dates
-          LEFT OUTER JOIN cached_dates
-          ON cached_dates.day = requested_dates.day
-          WHERE cached_dates.day IS NULL
+          LEFT OUTER JOIN all_cached_dates
+          ON all_cached_dates.day = requested_dates.day
+          WHERE all_cached_dates.day IS NULL
+      ), cached_dates AS (
+        SELECT requested_dates.day :: DATE
+          FROM requested_dates
+          RIGHT OUTER JOIN all_cached_dates
+          ON all_cached_dates.day = requested_dates.day
+          WHERE requested_dates.day IS NOT NULL
+      ), uncached_ranges AS (
+        -- I'm so damn sleepy. I also need to practice partitions/windows more.
+        -- https://stackoverflow.com/questions/26476717/aggregate-continuous-ranges-of-dates
+        SELECT min(day) AS start_date, max(day) AS end_date
+          FROM (
+            SELECT day,
+                day - row_number() OVER (ORDER BY day)::INT AS grp
+              FROM uncached_dates
+          ) sub
+          GROUP  BY grp
+          ORDER  BY grp
+      ), cached_ranges AS (
+        -- https://stackoverflow.com/questions/26476717/aggregate-continuous-ranges-of-dates
+        SELECT min(day) AS start_date, max(day) AS end_date
+          FROM (
+            SELECT day,
+                day - row_number() OVER (ORDER BY day)::INT AS grp
+              FROM cached_dates
+          ) sub
+          GROUP  BY grp
+          ORDER  BY grp
+      ), cached_json AS (
+        SELECT json_agg(row_to_json(cached_ranges))
+          FROM cached_ranges
+      ), uncached_json AS (
+        SELECT json_agg(row_to_json(uncached_ranges))
+          FROM uncached_ranges
       )
-      -- I'm so damn sleepy. I also need to practice partitions/windows more.
-      -- https://stackoverflow.com/questions/26476717/aggregate-continuous-ranges-of-dates
-      SELECT min(day) AS start_date, max(day) AS end_date
-        FROM (
-          SELECT day,
-            day - row_number() OVER (ORDER BY day)::INT AS grp
-          FROM uncached_dates
-        ) sub
-        GROUP  BY grp
-        ORDER  BY grp;
+      SELECT json_build_object(
+        'cached',
+        cached_json.json_agg,
+        'uncached',
+        uncached_json.json_agg
+      )
+        FROM cached_json, uncached_json;
     $$;
 COMMIT;
