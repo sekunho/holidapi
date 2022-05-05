@@ -313,7 +313,6 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
       ...>   "day" => 12,
       ...> }
       ...> |> from_map()
-      ...> |> IO.inspect()
       ...> |> elem(1)
       ...> |> get_year_selector()
       :no_selector

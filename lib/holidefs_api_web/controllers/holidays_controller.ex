@@ -3,6 +3,8 @@ defmodule HolidefsApiWeb.HolidaysController do
 
   alias HolidefsApi.Request.RetrieveHolidays
   alias HolidefsApi.Request.AddCustomHoliday
+  alias HolidefsApi.Holidefs.Db
+
   import HolidefsApi.Holidefs, only: [between_db: 1]
   import HolidefsApi.Holidefs.Export, only: [export: 1]
 
@@ -22,10 +24,9 @@ defmodule HolidefsApiWeb.HolidaysController do
   end
 
   def create(conn, params) do
-    IO.inspect(params)
-
     with {:ok, add_holiday_request} <- AddCustomHoliday.from_map(params),
-         {:ok, _} <- HolidefsApi.Holidefs.Db.save_rule(add_holiday_request) do
+         {:ok, _} <- Db.Rule.save(add_holiday_request) do
+      # TODO: Return the new rule data that was just added
       # IO.inspect(add_holiday_request)
     else
       {:error, e} ->
