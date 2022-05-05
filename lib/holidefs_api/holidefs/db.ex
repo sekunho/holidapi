@@ -31,22 +31,30 @@ defmodule HolidefsApi.Holidefs.Db do
           request.country,
 
           # is informal
-          false,
+          request.informal?,
 
           # holiday name
           request.name,
-          nil,
+          if request.observed do
+            Atom.to_string(request.observed)
+          else
+            nil
+          end,
 
           request.month,
           request.day,
 
           # Week
-          nil,
-          nil,
+          request.week,
+          request.weekday,
 
           # Function
-          nil,
-          nil,
+          if request.function do
+            Atom.to_string(request.function)
+          else
+            nil
+          end,
+          request.function_modifier,
 
           if selector_type == :no_selector do
             nil
@@ -60,7 +68,7 @@ defmodule HolidefsApi.Holidefs.Db do
       )
 
     case result do
-      {:ok, _} -> result |> IO.inspect()
+      {:ok, _} -> result
       {:error, %{postgres: %{message: "E001" <> _}}} ->
         {:error, :invalid_country_code}
 

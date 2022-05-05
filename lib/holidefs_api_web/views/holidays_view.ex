@@ -45,6 +45,20 @@ defmodule HolidefsApiWeb.HolidaysView do
               - "after" which supports a single year
               - "before" which supports a single year
             """
+
+            :invalid_month -> """
+              E006: Invalid month value. `"month"` should either be an integer
+              1 to 12, or a null value to represent that the holiday is not a
+              fixed month.
+            """
+
+            :invalid_day -> """
+              E007: Invalid day value. `"day"` should either be an integer
+              1 to 31, or a null value.
+            """
+
+            :day_should_be_nil ->
+              "E008: Day should be null if month is also null."
           end
 
         %{errors: %{detail: msg}}
