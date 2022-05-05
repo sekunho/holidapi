@@ -27,7 +27,7 @@ BEGIN;
     observed_date DATE NOT NULL,
     raw_date      DATE NOT NULL,
 
-    UNIQUE (name, informal, date, observed_date, raw_date)
+    UNIQUE (date_range_id, name, informal, date, observed_date, raw_date)
   );
 
   CREATE INDEX date_range_index ON cache.holidays(date_range_id);
@@ -83,5 +83,43 @@ BEGIN;
           WHERE date_ranges.date_range_id = ANY(delete_def_ids)
       )
       SELECT * FROM new_range;
+    $$;
+
+  CREATE OR REPLACE FUNCTION cache.check_dates(
+    start_date   DATE,
+    end_date     DATE,
+    country_code TEXT
+  )
+    RETURNS TABLE (start_date DATE, end_date DATE)
+    LANGUAGE SQL IMMUTABLE
+    AS $$
+      WITH requested_dates AS (
+        SELECT day
+          FROM generate_series(
+            start_date,
+            end_date,
+            interval '1 day'
+          ) AS day
+      ), cached_dates AS (
+        SELECT generate_series(start_date, end_date, interval '1 day') AS day
+          FROM cache.date_ranges
+          WHERE code = country_code
+      ), uncached_dates AS (
+        SELECT requested_dates.day :: DATE
+          FROM requested_dates
+          LEFT OUTER JOIN cached_dates
+          ON cached_dates.day = requested_dates.day
+          WHERE cached_dates.day IS NULL
+      )
+      -- I'm so damn sleepy. I also need to practice partitions/windows more.
+      -- https://stackoverflow.com/questions/26476717/aggregate-continuous-ranges-of-dates
+      SELECT min(day) AS start_date, max(day) AS end_date
+        FROM (
+          SELECT day,
+            day - row_number() OVER (ORDER BY day)::INT AS grp
+          FROM uncached_dates
+        ) sub
+        GROUP  BY grp
+        ORDER  BY grp;
     $$;
 COMMIT;
