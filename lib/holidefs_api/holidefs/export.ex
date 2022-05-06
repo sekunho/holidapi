@@ -1,13 +1,13 @@
 defmodule HolidefsApi.Holidefs.Export do
   alias HolidefsApi.Request.RetrieveHolidays
-  import HolidefsApi.Holidefs, only: [between: 1]
+  import HolidefsApi.Holidefs, only: [between_db: 1]
 
   @spec export(RetrieveHolidays.t())
     :: {:ok, [Holidefs.Holiday.t()]} | {:error, atom()}
   def export(request) do
     events =
       request
-      |> between()
+      |> between_db()
       |> case do
         {:ok, holidays} ->
           Enum.map(holidays, fn holiday ->
