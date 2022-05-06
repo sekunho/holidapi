@@ -19,7 +19,10 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
   typedstruct do
     @typedoc "A request for retrieving holidays encoded as a struct"
 
-    field :type, Type.type(), enforce: true
+    field :country, Holidefs.locale_code(), enforce: true
+    field :from, Date.t(), enforce: true
+    field :to, Date.t(), enforce: true
+    field :opts, Keyword.t(), enforce: true, default: []
   end
 
   @doc """
@@ -38,14 +41,10 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
       {
         :ok,
         %RetrieveHolidays{
-          type: {
-            :formal,
-            %RetrieveHolidays.Type{
-              country: :ph,
-              from: ~D[2022-01-01],
-              to: ~D[2022-04-03]
-            }
-          }
+          country: :ph,
+          from: ~D[2022-01-01],
+          to: ~D[2022-04-03],
+          opts: []
         }
       }
 
@@ -60,14 +59,10 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
       {
         :ok,
         %RetrieveHolidays{
-          type: {
-            :formal,
-            %RetrieveHolidays.Type{
-              country: :ph,
-              from: ~D[2022-01-01],
-              to: ~D[2022-04-03]
-            }
-          }
+          country: :ph,
+          from: ~D[2022-01-01],
+          to: ~D[2022-04-03],
+          opts: []
         }
       }
 
@@ -82,14 +77,10 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
       {
         :ok,
         %RetrieveHolidays{
-          type: {
-            :include_informal,
-            %RetrieveHolidays.Type{
-              country: :ph,
-              from: ~D[2022-01-01],
-              to: ~D[2022-04-03]
-            }
-          }
+          country: :ph,
+          from: ~D[2022-01-01],
+          to: ~D[2022-04-03],
+          opts: []
         }
       }
 
@@ -104,17 +95,6 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
       ...>   "holiday_type" => "include_informal"
       ...> })
       {:error, :invalid_country_code}
-
-
-  If the holiday type is neither "formal" or "include_informal"
-
-      iex> from_map(%{
-      ...>   "country" => "ph",
-      ...>   "start" => "2022-01-01",
-      ...>   "end" => "2022-04-03",
-      ...>   "holiday_type" => "what_is_this"
-      ...> })
-      {:error, :invalid_holiday_type}
 
 
   If it's an invalid date
@@ -142,18 +122,18 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
     "end" => to,
   }) do
     holiday_type = Map.get(req, "holiday_type", "formal")
+    opts = HolidefsApi.Request.parse_opts(req)
 
     with {:ok, from} <- Date.from_iso8601(from),
          {:ok, to} <- Date.from_iso8601(to),
-         {:ok, country} <- parse_country_code(country),
-         {:ok, type} <- Type.from(country, from, to, holiday_type) do
-      {:ok, %__MODULE__{type: type}}
+         {:ok, country} <- parse_country_code(country) do
+         # {:ok, type} <- Type.from(country, from, to, holiday_type) do
+      {:ok, %__MODULE__{opts: opts, country: country, from: from, to: to}}
     else
       {:error, :invalid_format} -> {:error, :invalid_date}
       {:error, :incompatible_calendars} -> {:error, :invalid_date}
       {:error, :invalid_date} -> {:error, :invalid_date}
       {:error, :invalid_country_code} -> {:error, :invalid_country_code}
-      {:error, :invalid_holiday_type} -> {:error, :invalid_holiday_type}
 
       _ -> {:error, :invalid_params}
     end

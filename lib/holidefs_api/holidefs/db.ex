@@ -97,7 +97,7 @@ defmodule HolidefsApi.Holidefs.Db do
   defp to_rule(rule_map) do
     fname =
       if rule_map["function"] do
-        String.to_existing_atom(rule_map["function"])
+        String.to_atom(rule_map["function"])
       else
         nil
       end

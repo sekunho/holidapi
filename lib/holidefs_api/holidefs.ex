@@ -14,42 +14,29 @@ defmodule HolidefsApi.Holidefs do
   """
   @spec between(RetrieveHolidays.t())
     :: {:ok, [Holidefs.Holiday.t()]} | {:error, atom()}
-  def between(request) do
-    fetch_holidays = fn
-      %{type: {:formal, %{country: country_code, from: from, to: to}}} ->
-        Holib.between(country_code, from, to)
-
-      %{type: {:include_informal, %{country: country_code, from: from, to: to}}} ->
-        Holib.between(
-          country_code,
-          from,
-          to,
-          &Holib.Definition.Store.get_definition/1,
-          include_informal?: true
-        )
-    end
-
-    fetch_holidays.(request)
+  def between(%{country: country_code, from: from, to: to, opts: opts}) do
+    Holib.between(
+      country_code,
+      from,
+      to,
+      &Holib.Definition.Store.get_definition/1,
+      opts
+    )
   end
 
+  @doc """
+  Convenience function for wrapping `Holidefs.between/5` with the DB store rather
+  than the default one.
+  """
   @spec between_db(RetrieveHolidays.t())
     :: {:ok, [Holidefs.Holiday.t()]} | {:error, atom()}
-  def between_db(request) do
-    fetch_holidays = fn
-      %{type: {:formal, %{country: country_code, from: from, to: to}}} ->
-        Holib.between(country_code, from, to, &__MODULE__.Db.get_definition!/1)
-
-      %{type: {:include_informal, %{country: country_code, from: from, to: to}}} ->
-        Holib.between(
-          country_code,
-          from,
-          to,
-          &__MODULE__.Db.get_definition!/1,
-          include_informal?: true
-        )
-    end
-
-    fetch_holidays.(request)
+  def between_db(%{country: country_code, from: from, to: to, opts: opts}) do
+    Holib.between(
+      country_code,
+      from,
+      to,
+      &__MODULE__.Db.get_definition!/1,
+      opts
+    )
   end
-
 end
