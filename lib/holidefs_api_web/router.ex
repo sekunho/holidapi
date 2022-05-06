@@ -12,7 +12,13 @@ defmodule HolidefsApiWeb.Router do
     get "/holidays/:country/cal.ics", HolidaysController, :generate_ics
     post "/holidays/:country", HolidaysController, :create
 
-    get "/holidays_alt/:country", HolidaysController, :index_alt
+    # Index observed date and date functions
+    get "/functions/:type", FunctionsController, :index
+
+    # Countries and regions
+    get "/countries", CountriesController, :index
+    get "/countries/:country", CountriesController, :show
+
   end
 
   # Enables LiveDashboard only for development
