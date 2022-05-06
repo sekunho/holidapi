@@ -1,6 +1,46 @@
 defmodule HolidefsApi.Holidefs.Db do
   import Ecto.Adapters.SQL #, only: [query: 3, query!:]
+  alias HolidefsApi.Repo
   alias HolidefsApi.Request.AddCustomHoliday
+
+  def get_holidays_from_years(repo, years, country_code) do
+    query_str = """
+    SELECT * FROM cache.get_holidays_from_year_range($1, $2)
+    """
+
+    result =
+      repo.query(query_str, [years, Atom.to_string(country_code)])
+
+    case result do
+      {:ok, %{rows: [[nil]]}} -> {:ok, %{}}
+      {:ok, %{rows: [[cache]]}} -> {:ok, cache}
+      {:error, _} -> result
+    end
+  end
+
+  def cache_years_query(repo, years, country_code) do
+    {query, args} = build_bulk_insert_years_query(years, country_code)
+
+    case repo.query(query, args) do
+      {:ok, %{rows: rows}} ->
+        {
+          :ok,
+          Enum.map(rows, fn [id, year, code] ->
+            %{"id" => id, "year" => year, "code" => code}
+          end)
+        }
+      e = {:error, _} -> e
+    end
+  end
+
+  def cache_holidays_query(repo, holidays, year_id) do
+    {query, args} = build_bulk_insert_holidays_query(holidays, year_id)
+
+    case repo.query(query, args) do
+      {:ok, %{rows: rows}} -> {:ok, rows}
+      e = {:error, _} -> e
+    end
+  end
 
   def save_rule(request = %AddCustomHoliday{}) do
     selector_type = AddCustomHoliday.get_year_selector(request)
@@ -28,8 +68,7 @@ defmodule HolidefsApi.Holidefs.Db do
         )
         """,
         [
-          # country code
-          request.country,
+          # country code request.country,
 
           # is informal
           request.informal?,
@@ -78,11 +117,19 @@ defmodule HolidefsApi.Holidefs.Db do
     end
   end
 
+  @spec get_definition!(any, Holidefs.locale_code()) :: Holidefs.Definition.t()
+  def get_definition!(repo, locale) do
+    {:ok, %{rows: [[definition]]}} =
+      repo.query("SELECT * FROM app.get_definitions($1)", [Atom.to_string(locale)])
+
+    to_definition(definition)
+  end
+
+
   @spec get_definition!(Holidefs.locale_code()) :: Holidefs.Definition.t()
   def get_definition!(locale) do
     {:ok, %{rows: [[definition]]}} =
       query(HolidefsApi.Repo, "SELECT * FROM app.get_definitions($1)", [Atom.to_string(locale)])
-
 
     to_definition(definition)
   end
@@ -222,4 +269,65 @@ defmodule HolidefsApi.Holidefs.Db do
 
     nil
   end
+
+  @spec build_bulk_insert_holidays_query([Holidefs.Holiday.t()], String.t()) :: {String.t(), [any]}
+  def build_bulk_insert_holidays_query(holidays, year_id) do
+    # Build the query string
+    str = "INSERT INTO cache.holidays(year_id, name, informal, date, observed_date, raw_date, holiday_uid) VALUES"
+
+    {query_chunks, args, _} =
+      Enum.reduce(holidays, {[], [], 1}, fn holiday, {query_chunks, args, arg_counter} ->
+        new_chunk =
+          Enum.reduce(arg_counter..arg_counter + 6, [], fn count, acc ->
+            ["$#{count}" | acc]
+          end)
+          |> Enum.reverse()
+          |> Enum.intersperse(", ")
+          |> List.to_string()
+
+        args =
+          [holiday.uid | [holiday.raw_date | [holiday.observed_date | [holiday.date | [holiday.informal? | [holiday.name | [year_id | args]]]]]]
+]
+        {["(#{new_chunk})" | query_chunks], args, arg_counter + 7}
+      end)
+
+    value_part =
+      query_chunks
+      |> Enum.reverse()
+      |> Enum.intersperse(", ")
+      |> List.to_string()
+
+    {"#{str} #{value_part} RETURNING holiday_id", Enum.reverse(args)}
+  end
+
+  @spec build_bulk_insert_years_query([integer()], Holidefs.locale_code()) :: {String.t(), [any]}
+  def build_bulk_insert_years_query(years, country_code) do
+    # Build the query string
+    str = "INSERT INTO cache.years(year, code) VALUES"
+    country_code = Atom.to_string(country_code)
+
+    {query_chunks, args, _} =
+      Enum.reduce(years, {[], [], 1}, fn year, {query_chunks, args, arg_counter} ->
+        new_chunk =
+          Enum.reduce(arg_counter..arg_counter + 1, [], fn count, acc ->
+            ["$#{count}" | acc]
+          end)
+          |> Enum.reverse()
+          |> Enum.intersperse(", ")
+          |> List.to_string()
+
+        args = [country_code | [year | args]]
+
+        {["(#{new_chunk})" | query_chunks], args, arg_counter + 2}
+      end)
+
+    value_part =
+      query_chunks
+      |> Enum.reverse()
+      |> Enum.intersperse(", ")
+      |> List.to_string()
+
+    {"#{str} #{value_part} RETURNING year_id, year, code", Enum.reverse(args)}
+  end
+
 end

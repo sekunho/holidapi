@@ -3,12 +3,12 @@ defmodule HolidefsApiWeb.HolidaysController do
 
   alias HolidefsApi.Request.RetrieveHolidays
   alias HolidefsApi.Request.AddCustomHoliday
-  import HolidefsApi.Holidefs, only: [between_db: 1]
+  import HolidefsApi.Holidefs, only: [between_db: 1, between_db_with_cache: 1]
   import HolidefsApi.Holidefs.Export, only: [export: 1]
 
   def index(conn, params) do
     with {:ok, retrieve_request} <- RetrieveHolidays.from_map(params),
-         {:ok, country_holidays} <- between_db(retrieve_request) do
+         {:ok, country_holidays} <- between_db_with_cache(retrieve_request) do
       render(conn, "index.json", country_holidays: country_holidays)
     else
       {:error, e} ->
