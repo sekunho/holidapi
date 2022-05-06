@@ -31,7 +31,12 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
 
   ## Examples
 
-  Defaults to `"formal"` if the key `holiday_type` does not exist.
+  Defaults to `include_formal?: true`, `regions: []`, and `observed?: false`.
+  So if you have something like this:
+
+  `?regions=gb_eng,gb_nir&opts=include_informal,observed` aren't provided.
+
+  Then it would set it accordingly.
 
       iex> from_map(%{
       ...>  "country" => "ph",
@@ -44,7 +49,11 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
           country: :ph,
           from: ~D[2022-01-01],
           to: ~D[2022-04-03],
-          opts: []
+          opts: %Holidefs.Options{
+            include_informal?: false,
+            regions: ["ph"],
+            observed?: false
+          }
         }
       }
 
@@ -54,7 +63,7 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
       ...>  "country" => "ph",
       ...>  "start" => "2022-01-01",
       ...>  "end" => "2022-04-03",
-      ...>  "holiday_type" => "formal"
+      ...>  "opts" => "include_informal"
       ...> })
       {
         :ok,
@@ -62,17 +71,22 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
           country: :ph,
           from: ~D[2022-01-01],
           to: ~D[2022-04-03],
-          opts: []
+          opts: %Holidefs.Options{
+            include_informal?: true,
+            regions: ["ph"],
+            observed?: false
+          }
         }
       }
 
-  You can include informal holidays in the retrieval as well.
+  You can use `observed_date` as the date of comparison instead, rather than
+  `date`.
 
       iex> from_map(%{
       ...>   "country" => "ph",
       ...>   "start" => "2022-01-01",
       ...>   "end" => "2022-04-03",
-      ...>   "holiday_type" => "include_informal"
+      ...>   "opts" => "observed"
       ...> })
       {
         :ok,
@@ -80,7 +94,11 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
           country: :ph,
           from: ~D[2022-01-01],
           to: ~D[2022-04-03],
-          opts: []
+          opts: %Holidefs.Options{
+            include_informal?: false,
+            regions: ["ph"],
+            observed?: true
+          }
         }
       }
 
@@ -121,13 +139,11 @@ defmodule HolidefsApi.Request.RetrieveHolidays do
     "start" => from,
     "end" => to,
   }) do
-    holiday_type = Map.get(req, "holiday_type", "formal")
     opts = HolidefsApi.Request.parse_opts(req)
 
     with {:ok, from} <- Date.from_iso8601(from),
          {:ok, to} <- Date.from_iso8601(to),
          {:ok, country} <- parse_country_code(country) do
-         # {:ok, type} <- Type.from(country, from, to, holiday_type) do
       {:ok, %__MODULE__{opts: opts, country: country, from: from, to: to}}
     else
       {:error, :invalid_format} -> {:error, :invalid_date}

@@ -7,12 +7,8 @@ defmodule HolidefsApiWeb.HolidaysController do
   import HolidefsApi.Holidefs.Export, only: [export: 1]
 
   def index(conn, params) do
-    IO.inspect(params)
-    with {:ok, retrieve_request} <- RetrieveHolidays.from_map(params) |> IO.inspect(),
+    with {:ok, retrieve_request} <- RetrieveHolidays.from_map(params),
          {:ok, country_holidays} <- between_db(retrieve_request) do
-
-       IO.inspect(retrieve_request)
-
       render(conn, "index.json", country_holidays: country_holidays)
     else
       {:error, e} ->

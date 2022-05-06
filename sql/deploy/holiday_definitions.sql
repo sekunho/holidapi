@@ -89,7 +89,9 @@ BEGIN;
     after_year    SMALLINT,
 
     -- This holiday is only a thing before this year
-    before_year   SMALLINT
+    before_year   SMALLINT,
+
+    regions       TEXT[]
 
     -- Since a holiday can only be one of 3 holiday types, this check ensures
     -- that the other irrelevant fields aren't set.
@@ -154,8 +156,9 @@ BEGIN;
     selector_type app.YEAR_SELECTOR,
     limited_years SMALLINT[],
     after_year    SMALLINT,
-    before_year   SMALLINT
+    before_year   SMALLINT,
 
+    regions       TEXT[]
   )
   RETURNS VOID
   LANGUAGE PLPGSQL
@@ -172,7 +175,7 @@ BEGIN;
       END IF;
 
       PERFORM rule_id
-        FROM app.insert_rule(def_id, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14);
+        FROM app.insert_rule(def_id, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);
     END
   $$;
 
@@ -202,7 +205,8 @@ BEGIN;
     selector_type app.YEAR_SELECTOR,
     limited_years SMALLINT[],
     after_year    SMALLINT,
-    before_year   SMALLINT
+    before_year   SMALLINT,
+    regions       TEXT[]
   )
     RETURNS TABLE (rule_id BIGINT)
     LANGUAGE SQL
@@ -222,9 +226,10 @@ BEGIN;
           selector_type,
           limited_years,
           after_year,
-          before_year
+          before_year,
+          regions
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         RETURNING rule_id;
     $$;
 
@@ -245,7 +250,7 @@ BEGIN;
             rules.month,
             rules.month_day AS day,
             rules.fun_observed AS observed,
-            array[definition_cte.code] AS regions,
+            rules.regions AS regions,
             rules.week,
             rules.week_day AS weekday,
             CASE

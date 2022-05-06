@@ -20,33 +20,49 @@ defmodule HolidefsApi.Request do
   Currently supports the ff:
 
     * `include_informal`: Include informal holidays in the list
-    * `observed`: New holiday entry in its observed date
+    * `observed`: If true, then it uses the `observed_date` as the date of comparison.
+    * `regions`: List of regions
 
   ## Examples
 
-      iex> Keyword.get(parse_opts(%{"opts" => "include_informal"}), :include_informal?)
-      true
+      iex> parse_opts(%{"opts" => "include_informal", "country" => "ph"})
+      %Holidefs.Options{include_informal?: true, regions: ["ph"], observed?: false}
 
-      iex> Keyword.get(parse_opts(%{"opts" => ""}), :include_informal?, false)
-      false
+      iex> parse_opts(%{"opts" => "observed", "country" => "ph"})
+      %Holidefs.Options{include_informal?: false, regions: ["ph"], observed?: true}
 
-      iex> Keyword.get(parse_opts(%{"opts" => "observed,include_informal"}), :observed?, false)
-      true
+      iex> parse_opts(%{"opts" => "include_informal,observed", "country" => "ph"})
+      %Holidefs.Options{include_informal?: true, regions: ["ph"], observed?: true}
+
+      iex> parse_opts(%{"country" => "gb", "regions" => "sct,eng", "opts" => "include_informal,observed"})
+      %Holidefs.Options{include_informal?: true, regions: ["sct", "eng"], observed?: true}
   """
-  @spec parse_opts(map) :: Keyword.t()
-  def parse_opts(params) do
-    case Map.fetch(params, "opts") do
-      {:ok, flags} ->
-        flags
-        |> String.split(",", trim: true)
-        |> Enum.reduce([], fn flag, acc ->
-          case flag do
-            "include_informal" -> [{:include_informal?, true} | acc]
-            "observed" -> [{:observed?, true} | acc]
-            _ -> acc
+  @spec parse_opts(map) :: Holidefs.Options.t()
+  def parse_opts(params = %{"country" => country_code}) do
+    opts =
+      params
+      |> Map.get("opts", "")
+      |> String.split(",", trim: true)
+      |> Enum.reduce(%Holidefs.Options{}, fn flag, opts ->
+        case flag do
+          "include_informal" -> %{opts | include_informal?: true}
+          "observed" -> %{opts | observed?: true}
+          _ -> opts
+        end
+      end)
+
+    opts =
+      params
+      |> Map.get("regions")
+      |> case do
+        nil -> %{opts | regions: [country_code]}
+        str ->
+          case String.split(str, ",", trim: true) do
+            [] -> %{opts | regions: [country_code]}
+            regions -> %{opts | regions: regions}
           end
-        end)
-      :error -> []
-    end
+      end
+
+    opts
   end
 end

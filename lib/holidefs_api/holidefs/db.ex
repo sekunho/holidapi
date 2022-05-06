@@ -23,7 +23,8 @@ defmodule HolidefsApi.Holidefs.Db do
           $11 :: app.YEAR_SELECTOR,
           $12 :: SMALLINT[],
           $13 :: SMALLINT,
-          $14 :: SMALLINT
+          $14 :: SMALLINT,
+          $15 :: TEXT[]
         )
         """,
         [
@@ -63,7 +64,8 @@ defmodule HolidefsApi.Holidefs.Db do
           end,
           AddCustomHoliday.get_year_selector_value(request, :limited),
           AddCustomHoliday.get_year_selector_value(request, :after),
-          AddCustomHoliday.get_year_selector_value(request, :before)
+          AddCustomHoliday.get_year_selector_value(request, :before),
+          request.regions
         ]
       )
 
@@ -143,11 +145,9 @@ defmodule HolidefsApi.Holidefs.Db do
         """,
         [Atom.to_string(definition.code), definition.name]
       )
-      |> IO.inspect(charlists: :as_charlists)
 
       # Insert all the rules under the definition
       for rule <- definition.rules do
-        IO.inspect(rule)
 
         {selector_type, limited_val, after_val, before_val} =
           if rule.year_ranges do
@@ -183,7 +183,8 @@ defmodule HolidefsApi.Holidefs.Db do
               $11 :: app.YEAR_SELECTOR,
               $12 :: SMALLINT[],
               $13 :: SMALLINT,
-              $14 :: SMALLINT
+              $14 :: SMALLINT,
+              $15 :: TEXT[]
             )
             """,
             [
@@ -212,7 +213,8 @@ defmodule HolidefsApi.Holidefs.Db do
               selector_type,
               limited_val,
               after_val,
-              before_val
+              before_val,
+              rule.regions
             ]
           )
       end

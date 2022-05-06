@@ -81,6 +81,7 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
 
     field :observed, atom()
     field :informal?, boolean(), enforced: true
+    field :regions, [String.t()], enforced: true
 
     field :month, month()
     field :day, day()
@@ -92,7 +93,6 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
     field :function_modifier, integer()
 
     field :year_selector, year_selector, enforced: true
-
   end
 
   @doc """
@@ -116,6 +116,7 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
         %AddCustomHoliday{
           name: "FooBar Day",
           informal?: false,
+          regions: ["ph"],
           month: 1,
           day: 12,
           country: "ph",
@@ -138,6 +139,7 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
         %AddCustomHoliday{
           name: "FooBar Day",
           informal?: false,
+          regions: ["nz"],
           month: 1,
           day: 12,
           country: "nz",
@@ -160,6 +162,7 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
         %AddCustomHoliday{
           name: "FooBar Day",
           informal?: false,
+          regions: ["us"],
           month: 1,
           day: 12,
           country: "us",
@@ -187,6 +190,7 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
           country: "us",
           observed: nil,
           informal?: false,
+          regions: ["us"],
           month: nil,
           day: nil,
           week: nil,
@@ -214,6 +218,7 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
           country: "us",
           observed: :closest_monday,
           informal?: false,
+          regions: ["us"],
           month: 1,
           day: 12,
           week: nil,
@@ -240,6 +245,7 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
     "country" => country
   }) do
     with {:ok, {month, month_day}} <- parse_month(holidata),
+         {:ok, regions} <- parse_regions(holidata),
          {:ok, informal?} <- parse_formality(holidata),
          {:ok, {week, weekday}} <- parse_week(holidata),
          {:ok, {function, function_modifier}} <- parse_function(holidata),
@@ -256,12 +262,25 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
         weekday: weekday,
         function: function,
         function_modifier: function_modifier,
-        year_selector: year_selector
+        year_selector: year_selector,
+        regions: regions
       }
 
       {:ok, holiday}
     else
       e -> e
+    end
+  end
+
+  defp parse_regions(holidata) do
+    case Map.fetch(holidata, "country") do
+      {:ok, country} ->
+        case Map.get(holidata, "regions", [country]) do
+          [] -> {:ok, [country]}
+          regions -> {:ok, regions}
+        end
+
+      :error -> {:error, :missing_country}
     end
   end
 
@@ -313,7 +332,6 @@ defmodule HolidefsApi.Request.AddCustomHoliday do
       ...>   "day" => 12,
       ...> }
       ...> |> from_map()
-      ...> |> IO.inspect()
       ...> |> elem(1)
       ...> |> get_year_selector()
       :no_selector
