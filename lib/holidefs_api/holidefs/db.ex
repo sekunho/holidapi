@@ -70,11 +70,28 @@ defmodule HolidefsApi.Holidefs.Db do
       )
 
     case result do
-      {:ok, _} -> result
+      {:ok, %{rows: [[_def_id, informal?, name, fun_observed, month, month_day, week, week_day, fun, fun_modifier, selector_type, limited_years, after_year, before_year, regions]]}} ->
+        map = %{
+          "informal" => informal?,
+          "name" => name,
+          "fun_observed" => fun_observed,
+          "month" => month,
+          "day" => month_day,
+          "week" => week,
+          "weekday" => week_day,
+          "fun" => fun,
+          "fun_modifier" => fun_modifier,
+          "selector_type" => selector_type,
+          "limited_years" => limited_years,
+          "after_year" => after_year,
+          "before_year" => before_year,
+          "regions" => regions
+        }
+        {:ok, to_rule(map)}
       {:error, %{postgres: %{message: "E001" <> _}}} ->
         {:error, :invalid_country_code}
 
-      {:error, e} -> {:internal_server_error, e}
+      {:error, e} -> {:internal_server_error, e} |> IO.inspect()
     end
   end
 

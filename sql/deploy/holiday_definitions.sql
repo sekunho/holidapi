@@ -131,42 +131,58 @@ BEGIN;
 --------------------------------------------------------------------------------
 
   CREATE FUNCTION app.find_def_and_insert_rule(
-    country       TEXT,
-    informal      BOOLEAN,
-    rule_name     TEXT,
-    fun_observed  app.FUN_OBSERVED,
+    in_country       TEXT,
+    in_informal      BOOLEAN,
+    in_rule_name     TEXT,
+    in_fun_observed  app.FUN_OBSERVED,
 
     -- HOLIDAY TYPES
     ------------------
 
     -- Month day holiday
-    month         SMALLINT,
-    month_day     SMALLINT,
+    in_month         SMALLINT,
+    in_month_day     SMALLINT,
 
     -- Week day holiday
-    week          SMALLINT,
-    week_day      SMALLINT,
+    in_week          SMALLINT,
+    in_week_day      SMALLINT,
 
     -- Custom function holiday
-    fun           app.FUN,
-    fun_modifier  INT,
+    in_fun           app.FUN,
+    in_fun_modifier  INT,
 
     -- YEAR SELECTORS
     -------------------
+    in_selector_type app.YEAR_SELECTOR,
+    in_limited_years SMALLINT[],
+    in_after_year    SMALLINT,
+    in_before_year   SMALLINT,
+
+    in_regions       TEXT[]
+  )
+  RETURNS TABLE (
+    definition_id BIGINT,
+    informal BOOLEAN,
+    name TEXT,
+    fun_observed app.FUN_OBSERVED,
+    month SMALLINT,
+    month_day SMALLINT,
+    week SMALLINT,
+    week_day SMALLINT,
+    fun app.FUN,
+    fun_modifier INT,
     selector_type app.YEAR_SELECTOR,
     limited_years SMALLINT[],
-    after_year    SMALLINT,
-    before_year   SMALLINT,
-
-    regions       TEXT[]
+    after_year SMALLINT,
+    before_year SMALLINT,
+    regions TEXT[]
   )
-  RETURNS VOID
   LANGUAGE PLPGSQL
   AS $$
     DECLARE
       def_id BIGINT;
     BEGIN
-      SELECT definition_id INTO def_id
+      SELECT definitions.definition_id INTO def_id
         FROM app.definitions
         WHERE code = $1;
 
@@ -174,8 +190,23 @@ BEGIN;
         raise EXCEPTION 'E001: Could not find definition %: %', $1, now();
       END IF;
 
-      PERFORM rule_id
-        FROM app.insert_rule(def_id, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15);
+      RETURN QUERY
+      SELECT t.definition_id,
+          t.informal,
+          t.name,
+          t.fun_observed,
+          t.month,
+          t.month_day,
+          t.week,
+          t.week_day,
+          t.fun,
+          t.fun_modifier,
+          t.selector_type,
+          t.limited_years,
+          t.after_year,
+          t.before_year,
+          t.regions
+        FROM app.insert_rule(def_id, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) as t;
     END
   $$;
 
@@ -208,7 +239,23 @@ BEGIN;
     before_year   SMALLINT,
     regions       TEXT[]
   )
-    RETURNS TABLE (rule_id BIGINT)
+    RETURNS TABLE (
+      definition_id BIGINT,
+      informal BOOLEAN,
+      name TEXT,
+      fun_observed app.FUN_OBSERVED,
+      month SMALLINT,
+      month_day SMALLINT,
+      week SMALLINT,
+      week_day SMALLINT,
+      fun app.FUN,
+      fun_modifier INT,
+      selector_type app.YEAR_SELECTOR,
+      limited_years SMALLINT[],
+      after_year SMALLINT,
+      before_year SMALLINT,
+      regions TEXT[]
+    )
     LANGUAGE SQL
     AS $$
       INSERT
@@ -230,7 +277,21 @@ BEGIN;
           regions
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-        RETURNING rule_id;
+        RETURNING definition_id,
+          informal,
+          name,
+          fun_observed,
+          month,
+          month_day,
+          week,
+          week_day,
+          fun,
+          fun_modifier,
+          selector_type,
+          limited_years,
+          after_year,
+          before_year,
+          regions;
     $$;
 
   CREATE FUNCTION app.get_definitions(locale TEXT)

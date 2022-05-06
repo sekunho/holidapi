@@ -20,8 +20,8 @@ defmodule HolidefsApiWeb.HolidaysController do
 
   def create(conn, params) do
     with {:ok, add_holiday_request} <- AddCustomHoliday.from_map(params),
-         {:ok, _} <- HolidefsApi.Holidefs.Db.save_rule(add_holiday_request) do
-      # IO.inspect(add_holiday_request)
+         {:ok, result} <- HolidefsApi.Holidefs.Db.save_rule(add_holiday_request) do
+      render(conn, "rule.json", rule: result)
     else
       {:error, e} ->
         conn

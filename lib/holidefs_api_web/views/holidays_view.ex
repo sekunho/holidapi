@@ -9,6 +9,8 @@ defmodule HolidefsApiWeb.HolidaysView do
       "holiday.json" -> data.holidays
       "calendar.ics" -> data.ics_data
 
+      "rule.json" -> Map.from_struct(data.rule)
+
       "500.json" ->
         msg =
           case data.error do
